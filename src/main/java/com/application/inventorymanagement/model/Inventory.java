@@ -1,9 +1,15 @@
 package com.application.inventorymanagement.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-public class Stock {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Inventory {
 
     @Id
     private Long productId;
@@ -12,6 +18,6 @@ public class Stock {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "productId")
+    @JoinColumn(name = "productId", nullable = false)
     private Product product;
 }

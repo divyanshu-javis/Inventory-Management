@@ -78,22 +78,20 @@ public class StockManagementService {
     public InventoryDto reduceStock(InventoryDto inventoryDto) {
         if (inventoryDto == null) throw new InvalidInputException("Invalid input");
 
-//        Long productId = inventoryDto.getProductId();
         String productName = inventoryDto.getName();
 
         Optional<Product> productOptional = productRepository.findByName(productName);
+
         if(productOptional.isPresent()) {
+
             Long productId = productOptional.get().getProductId();
-//            Optional<InventoryDto> inventoryData = inventoryRepository.findInventoryById(productId);
             Optional<Inventory> inventoryData = inventoryRepository.findById(productId);
+
             if(inventoryData.isPresent()) {
                 int reduceQuantity = inventoryData.get().getQuantity();
                 if(reduceQuantity > inventoryDto.getQuantity()) {
                     int reducedQuantity = reduceQuantity - inventoryDto.getQuantity();
 
-//                    Inventory inventory = new Inventory();
-//                    inventory.setQuantity(reduceQuantity);
-//                    inventory.setProduct(productOptional.get());
                     inventoryData.get().setQuantity(reducedQuantity);
 
                     inventoryRepository.save(inventoryData.get());

@@ -42,7 +42,6 @@ public class DataProcessingService {
             for(ConsumptionRequestDto consumptionRequestDto : consumptionRequestList){
                 InventoryDto reduceRequest = new InventoryDto(consumptionRequestDto.getProductName(), consumptionRequestDto.getQuantity());
                 try{
-//                    InventoryDto reduceResult =
                     stockManagementService.reduceStock(reduceRequest);
                     consumptionResponseDto.getConsumptionList().add(inventoryMapper.toInventoryDto(consumptionRequestDto));
                 }

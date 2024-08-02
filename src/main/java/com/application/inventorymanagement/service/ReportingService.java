@@ -1,36 +1,47 @@
 package com.application.inventorymanagement.service;
 
+import com.application.inventorymanagement.dto.ProductDto;
 import com.application.inventorymanagement.dto.request.ReportingRequestDto;
-import com.application.inventorymanagement.dto.response.ReportingResponseDto;
 import com.application.inventorymanagement.mapper.ProductMapper;
 import com.application.inventorymanagement.model.Product;
-import com.application.inventorymanagement.service.primaryService.PrimaryReportingService;
+import com.application.inventorymanagement.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ReportingService {
 
-    private final PrimaryReportingService primaryReportingService;
     private final ProductMapper productMapper = new ProductMapper();
+    private final ProductRepository productRepository;
 
-    public ReportingService(PrimaryReportingService primaryReportingService) {
-        this.primaryReportingService = primaryReportingService;
+    public ReportingService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
-    public ReportingResponseDto filterProducts(ReportingRequestDto reportingRequestDto) {
+    public List<ProductDto> filterProducts(ReportingRequestDto reportingRequestDto) {
 
         String category = reportingRequestDto.getCategory();
         List<String> suppliers = reportingRequestDto.getSuppliers();
-
-        List<Product> filteredProductsPrimary = primaryReportingService.filterProductsPrimary(category, suppliers);
-
         Double minPrice = reportingRequestDto.getMinPrice();
         Double maxPrice = reportingRequestDto.getMaxPrice();
         Integer stockThreshold = reportingRequestDto.getStockThreshold();
+
+        List<Product> filteredProductsPrimary;
+
+        if(category == null){
+            if((suppliers == null || suppliers.isEmpty()))
+                filteredProductsPrimary =  productRepository.findAll();
+
+            else filteredProductsPrimary =  productRepository.findBySupplierIn(suppliers);
+        }
+        else {
+            if((suppliers == null || suppliers.isEmpty()))
+                filteredProductsPrimary =  productRepository.findByCategory(category);
+
+            else filteredProductsPrimary = productRepository.findBySupplierInAndCategory(suppliers, category);
+        }
 
         if(stockThreshold != null){
             List<Product> filteredOnStockThreshold = filteredProductsPrimary.stream()
@@ -39,48 +50,42 @@ public class ReportingService {
             return secondaryFilter(filteredOnStockThreshold, minPrice, maxPrice);
         }
         else return secondaryFilter(filteredProductsPrimary, minPrice, maxPrice);
+
     }
 
 
-    private ReportingResponseDto secondaryFilter(List<Product> filteredProducts, Double minPrice, Double maxPrice) {
+    private List<ProductDto> secondaryFilter(List<Product> filteredProducts, Double minPrice, Double maxPrice) {
 
-        ReportingResponseDto reportingResponseDto = new ReportingResponseDto();
+        List<ProductDto> reportingResponseList;
 
         if(minPrice != null && maxPrice != null){
-            reportingResponseDto.setProductList(
-                    filteredProducts.stream()
-                            .filter(product -> product.getPrice() >= minPrice
-                                    && product.getPrice() <= maxPrice)
-                            .map(productMapper::toProductDto)
-                            .collect(Collectors.toList())
-            );
-            return reportingResponseDto;
+
+            reportingResponseList = filteredProducts.stream()
+                    .filter(product -> product.getPrice() >= minPrice
+                            && product.getPrice() <= maxPrice)
+                    .map(productMapper::toProductDto)
+                    .collect(Collectors.toList());
+            return reportingResponseList;
         }
         else if(minPrice != null){
-            reportingResponseDto.setProductList(
-                    filteredProducts.stream()
-                            .filter(product -> product.getPrice() >= minPrice)
-                            .map(productMapper::toProductDto)
-                            .collect(Collectors.toList())
-            );
-            return reportingResponseDto;
+            reportingResponseList = filteredProducts.stream()
+                    .filter(product -> product.getPrice() >= minPrice)
+                    .map(productMapper::toProductDto)
+                    .collect(Collectors.toList());
+            return reportingResponseList;
         }
         else if(maxPrice != null){
-            reportingResponseDto.setProductList(
-                    filteredProducts.stream()
-                            .filter(product -> product.getPrice() <= maxPrice)
-                            .map(productMapper::toProductDto)
-                            .collect(Collectors.toList())
-            );
-            return reportingResponseDto;
+            reportingResponseList = filteredProducts.stream()
+                    .filter(product -> product.getPrice() <= maxPrice)
+                    .map(productMapper::toProductDto)
+                    .collect(Collectors.toList());
+            return reportingResponseList;
         }
         else {
-            reportingResponseDto.setProductList(
-                    filteredProducts.stream()
-                            .map(productMapper::toProductDto)
-                            .collect(Collectors.toList())
-            );
-            return reportingResponseDto;
+            reportingResponseList = filteredProducts.stream()
+                    .map(productMapper::toProductDto)
+                    .collect(Collectors.toList());
+            return reportingResponseList;
         }
     }
 

@@ -8,7 +8,6 @@ import com.application.inventorymanagement.dto.response.ProductionResponseDto;
 import com.application.inventorymanagement.exception.InvalidInputException;
 import com.application.inventorymanagement.exception.ResourceNotFoundException;
 import com.application.inventorymanagement.mapper.InventoryMapper;
-import com.application.inventorymanagement.mapper.ProductMapper;
 import com.application.inventorymanagement.model.Inventory;
 import com.application.inventorymanagement.model.Product;
 import com.application.inventorymanagement.repository.InventoryRepository;

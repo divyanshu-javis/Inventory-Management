@@ -27,7 +27,6 @@ public class DataProcessingService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper = new InventoryMapper();
-    private final ProductMapper productMapper = new ProductMapper();
 
     public DataProcessingService(StockManagementService stockManagementService, ProductRepository productRepository, InventoryRepository inventoryRepository) {
         this.stockManagementService = stockManagementService;

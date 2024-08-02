@@ -24,7 +24,6 @@ public class ReportingService {
     public ReportingResponseDto filterProducts(ReportingRequestDto reportingRequestDto) {
 
         String category = reportingRequestDto.getCategory();
-
         List<String> suppliers = reportingRequestDto.getSuppliers();
 
         List<Product> filteredProductsPrimary = primaryReportingService.filterProductsPrimary(category, suppliers);
@@ -34,38 +33,42 @@ public class ReportingService {
         Integer stockThreshold = reportingRequestDto.getStockThreshold();
 
         if(stockThreshold != null){
-            List<Product> filteredOnStockThreshold = this.filterProductsOnStockThreshold(filteredProductsPrimary, stockThreshold);
+            List<Product> filteredOnStockThreshold = filteredProductsPrimary.stream()
+                    .filter(product -> product.getInventory().getQuantity() >= stockThreshold)
+                    .toList();
             return secondaryFilter(filteredOnStockThreshold, minPrice, maxPrice);
         }
         else return secondaryFilter(filteredProductsPrimary, minPrice, maxPrice);
     }
-    
-    private ReportingResponseDto secondaryFilter(List<Product> primaryFilteredProducts, Double minPrice, Double maxPrice) {
+
+
+    private ReportingResponseDto secondaryFilter(List<Product> filteredProducts, Double minPrice, Double maxPrice) {
 
         ReportingResponseDto reportingResponseDto = new ReportingResponseDto();
-        
+
         if(minPrice != null && maxPrice != null){
-            List<Product> filteredOnMinAndMaxPrice = this.filterProductsOnMinAndMaxPrice(primaryFilteredProducts, minPrice, maxPrice);
             reportingResponseDto.setProductList(
-                    filteredOnMinAndMaxPrice.stream()
+                    filteredProducts.stream()
+                            .filter(product -> product.getPrice() >= minPrice
+                                    && product.getPrice() <= maxPrice)
                             .map(productMapper::toProductDto)
                             .collect(Collectors.toList())
             );
             return reportingResponseDto;
         }
         else if(minPrice != null){
-            List<Product> filteredOnMinPrice = this.filterProductsOnMinPrice(primaryFilteredProducts, minPrice);
             reportingResponseDto.setProductList(
-                    filteredOnMinPrice.stream()
+                    filteredProducts.stream()
+                            .filter(product -> product.getPrice() >= minPrice)
                             .map(productMapper::toProductDto)
                             .collect(Collectors.toList())
             );
             return reportingResponseDto;
         }
         else if(maxPrice != null){
-            List<Product> filteredOnMaxPrice = this.filterProductsOnMaxPrice(primaryFilteredProducts, maxPrice);
             reportingResponseDto.setProductList(
-                    filteredOnMaxPrice.stream()
+                    filteredProducts.stream()
+                            .filter(product -> product.getPrice() <= maxPrice)
                             .map(productMapper::toProductDto)
                             .collect(Collectors.toList())
             );
@@ -73,59 +76,12 @@ public class ReportingService {
         }
         else {
             reportingResponseDto.setProductList(
-                    primaryFilteredProducts.stream()
+                    filteredProducts.stream()
                             .map(productMapper::toProductDto)
                             .collect(Collectors.toList())
             );
             return reportingResponseDto;
         }
     }
-
-
-    private List<Product> filterProductsOnStockThreshold(List<Product> filteredProductsPrimary, Integer stockThreshold) {
-
-        List<Product> filteredOnStockThreshold = new ArrayList<>();
-
-        for(Product product : filteredProductsPrimary){
-            if(product.getInventory().getQuantity() >= stockThreshold){
-                filteredOnStockThreshold.add(product);
-            }
-        }
-        return filteredOnStockThreshold;
-    }
-
-
-    private List<Product> filterProductsOnMinAndMaxPrice(List<Product> filteredProducts, Double minPrice, Double maxPrice){
-        List<Product> filteredOnMinAndMaxPrice = new ArrayList<>();
-        for(Product product : filteredProducts){
-            if(product.getPrice() >= minPrice && product.getPrice() <= maxPrice){
-                filteredOnMinAndMaxPrice.add(product);
-            }
-        }
-        return filteredOnMinAndMaxPrice;
-    }
-
-
-    private List<Product> filterProductsOnMinPrice(List<Product> filteredProducts, Double minPrice){
-        List<Product> filteredOnMinPrice = new ArrayList<>();
-        for(Product product : filteredProducts){
-            if(product.getPrice() >= minPrice){
-                filteredOnMinPrice.add(product);
-            }
-        }
-        return filteredOnMinPrice;
-    }
-
-
-    private List<Product> filterProductsOnMaxPrice(List<Product> filteredProducts, Double maxPrice){
-        List<Product> filteredOnMaxPrice = new ArrayList<>();
-        for(Product product : filteredProducts){
-            if(product.getPrice() <= maxPrice){
-                filteredOnMaxPrice.add(product);
-            }
-        }
-        return filteredOnMaxPrice;
-    }
-
 
 }

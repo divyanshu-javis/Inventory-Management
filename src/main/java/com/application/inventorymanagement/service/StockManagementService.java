@@ -31,10 +31,8 @@ public class StockManagementService {
     public InventoryDto addStock(InventoryDto inventoryDto) {
         if(inventoryDto == null) throw new InvalidInputException("Invalid input");
 
-//        Long productId = inventoryDto.getProductId();
         String productName = inventoryDto.getName();
 
-//        Optional<Product> productOptional = productRepository.findById(productId);
         Optional<Product> productOptional = productRepository.findByName(productName);
 
         if(productOptional.isPresent()) {

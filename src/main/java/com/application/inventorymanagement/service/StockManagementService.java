@@ -1,13 +1,13 @@
-package com.application.inventorymanagement.service.impl;
+package com.application.inventorymanagement.service;
 
 import com.application.inventorymanagement.exception.ResourceNotFoundException;
+import com.application.inventorymanagement.mapper.InventoryMapper;
 import com.application.inventorymanagement.model.Inventory;
 import com.application.inventorymanagement.model.Product;
 import com.application.inventorymanagement.dto.InventoryDto;
 import com.application.inventorymanagement.exception.InvalidInputException;
 import com.application.inventorymanagement.repository.InventoryRepository;
 import com.application.inventorymanagement.repository.ProductRepository;
-import com.application.inventorymanagement.service.StockManagementService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -16,18 +16,18 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
-public class StockManagementServiceImpl implements StockManagementService {
+public class StockManagementService {
 
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
+    private final InventoryMapper inventoryMapper = new InventoryMapper();
 
-    public StockManagementServiceImpl(InventoryRepository inventoryRepository, ProductRepository productRepository) {
+    public StockManagementService(InventoryRepository inventoryRepository, ProductRepository productRepository) {
         this.inventoryRepository = inventoryRepository;
         this.productRepository = productRepository;
     }
 
 
-    @Override
     public InventoryDto addStock(InventoryDto inventoryDto) {
         if(inventoryDto == null) throw new InvalidInputException("Invalid input");
 
@@ -51,7 +51,7 @@ public class StockManagementServiceImpl implements StockManagementService {
 
                 inventoryRepository.save(inventoryData.get());
 
-                return toInventoryDto(inventoryData.get());
+                return inventoryMapper.toInventoryDto(inventoryData.get());
             }
             else {
                 int quantity = inventoryDto.getQuantity();
@@ -65,7 +65,7 @@ public class StockManagementServiceImpl implements StockManagementService {
                 System.out.println(inventory);
 
                 inventoryRepository.save(inventory);
-                return toInventoryDto(inventory);
+                return inventoryMapper.toInventoryDto(inventory);
             }
         }
         //if the product does not exist in the product table
@@ -75,7 +75,6 @@ public class StockManagementServiceImpl implements StockManagementService {
 
     }
 
-    @Override
     public InventoryDto reduceStock(InventoryDto inventoryDto) {
         if (inventoryDto == null) throw new InvalidInputException("Invalid input");
 
@@ -99,7 +98,7 @@ public class StockManagementServiceImpl implements StockManagementService {
 
                     inventoryRepository.save(inventoryData.get());
 
-                    return toInventoryDto(inventoryData.get());
+                    return inventoryMapper.toInventoryDto(inventoryData.get());
                 }
                 // product stock < reduceQuantity
                 else {
@@ -117,30 +116,16 @@ public class StockManagementServiceImpl implements StockManagementService {
         }
     }
 
-    @Override
     public Set<InventoryDto> getStockLevels() {
         List<Inventory> inventorySet = inventoryRepository.findAll();
 
         Set<InventoryDto> inventoryDtoSet = new HashSet<>();
         for (Inventory inventory : inventorySet) {
-            inventoryDtoSet.add(toInventoryDto(inventory));
+            inventoryDtoSet.add(inventoryMapper.toInventoryDto(inventory));
         }
 
         return inventoryDtoSet;
     }
-
-
-    public InventoryDto toInventoryDto(Inventory inventory) {
-        if(inventory == null) return null;
-
-        InventoryDto inventoryDto = new InventoryDto();
-
-        inventoryDto.setName(inventory.getProduct().getName());
-        inventoryDto.setQuantity(inventory.getQuantity());
-
-        return inventoryDto;
-    }
-
 
 
 }

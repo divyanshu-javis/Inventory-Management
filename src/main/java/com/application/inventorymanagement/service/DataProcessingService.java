@@ -1,4 +1,4 @@
-package com.application.inventorymanagement.service.impl;
+package com.application.inventorymanagement.service;
 
 import com.application.inventorymanagement.dto.InventoryDto;
 import com.application.inventorymanagement.dto.request.ConsumptionRequestDto;
@@ -7,13 +7,11 @@ import com.application.inventorymanagement.dto.response.ConsumptionResponseDto;
 import com.application.inventorymanagement.dto.response.ProductionResponseDto;
 import com.application.inventorymanagement.exception.InvalidInputException;
 import com.application.inventorymanagement.exception.ResourceNotFoundException;
+import com.application.inventorymanagement.mapper.InventoryMapper;
 import com.application.inventorymanagement.model.Inventory;
 import com.application.inventorymanagement.model.Product;
 import com.application.inventorymanagement.repository.InventoryRepository;
 import com.application.inventorymanagement.repository.ProductRepository;
-import com.application.inventorymanagement.service.DataProcessingService;
-import com.application.inventorymanagement.service.ProductManagementService;
-import com.application.inventorymanagement.service.StockManagementService;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,16 +20,15 @@ import java.io.IOException;
 import java.util.*;
 
 @Service
-public class DataProcessingServiceImpl implements DataProcessingService {
+public class DataProcessingService {
 
     private final StockManagementService stockManagementService;
-    private final ProductManagementService productManagementService;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
+    private final InventoryMapper inventoryMapper = new InventoryMapper();
 
-    public DataProcessingServiceImpl(StockManagementService stockManagementService, ProductManagementService productManagementService, ProductRepository productRepository, InventoryRepository inventoryRepository) {
+    public DataProcessingService(StockManagementService stockManagementService, ProductRepository productRepository, InventoryRepository inventoryRepository) {
         this.stockManagementService = stockManagementService;
-        this.productManagementService = productManagementService;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
     }
@@ -45,8 +42,9 @@ public class DataProcessingServiceImpl implements DataProcessingService {
             for(ConsumptionRequestDto consumptionRequestDto : consumptionRequestList){
                 InventoryDto reduceRequest = new InventoryDto(consumptionRequestDto.getProductName(), consumptionRequestDto.getQuantity());
                 try{
-                    InventoryDto reduceResult = stockManagementService.reduceStock(reduceRequest);
-                    consumptionResponseDto.getConsumptionList().add(this.toInventoryDto(consumptionRequestDto));
+//                    InventoryDto reduceResult =
+                    stockManagementService.reduceStock(reduceRequest);
+                    consumptionResponseDto.getConsumptionList().add(inventoryMapper.toInventoryDto(consumptionRequestDto));
                 }
                 catch(ResourceNotFoundException e){
                     consumptionResponseDto.getProductsNotAvailable().add(consumptionRequestDto.getProductName());
@@ -95,7 +93,7 @@ public class DataProcessingServiceImpl implements DataProcessingService {
                     productRepository.save(newProduct);
                     inventoryRepository.save(newInventory);
 
-                    productionResponseDto.getProductsCreated().add(this.toInventoryDto(newInventory));
+                    productionResponseDto.getProductsCreated().add(inventoryMapper.toInventoryDto(newInventory));
                 }
             }
 
@@ -227,24 +225,6 @@ public class DataProcessingServiceImpl implements DataProcessingService {
             }
         }
         return productionRequestDto;
-    }
-
-    private InventoryDto toInventoryDto(ConsumptionRequestDto consumptionRequestDto) {
-        InventoryDto inventoryDto = new InventoryDto();
-
-        inventoryDto.setName(consumptionRequestDto.getProductName());
-        inventoryDto.setQuantity(consumptionRequestDto.getQuantity());
-
-        return inventoryDto;
-    }
-
-    private InventoryDto toInventoryDto(Inventory inventory){
-        InventoryDto inventoryDto = new InventoryDto();
-
-        inventoryDto.setName(inventory.getProduct().getName());
-        inventoryDto.setQuantity(inventory.getQuantity());
-
-        return inventoryDto;
     }
 
 

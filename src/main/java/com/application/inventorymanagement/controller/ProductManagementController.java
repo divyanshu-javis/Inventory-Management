@@ -41,8 +41,6 @@ public class ProductManagementController {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-
     }
 
     @PutMapping("/{id}")

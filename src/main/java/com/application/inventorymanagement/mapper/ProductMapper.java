@@ -24,6 +24,22 @@ public class ProductMapper {
         return productDto;
     }
 
+    public ProductDto toProductDto(Product product, String message) {
+        if(product == null) return null;
+
+        ProductDto productDto = new ProductDto();
+
+        productDto.setName(product.getName());
+        productDto.setDescription(product.getDescription());
+        productDto.setPrice(product.getPrice());
+        productDto.setCategory(product.getCategory());
+        productDto.setSupplier(product.getSupplier());
+        productDto.setMessage(message);
+
+        return productDto;
+    }
+
+
     public Product toProductEntity(ProductDto productDto) {
         if(productDto == null) return null;
 

@@ -35,6 +35,18 @@ public class ProductManagementService {
     public ProductDto addProduct(ProductDto productDto){
         if(productDto == null) throw new InvalidInputException("Product cannot be null");
 
+        if(productDto.getName() == null){
+            throw new InvalidInputException("Product name cannot be null");
+        }
+        else if (productDto.getName().isEmpty()) {
+            throw new InvalidInputException("Product name cannot be empty");
+        }
+
+        Optional<Product> presentProduct = productRepository.findByName(productDto.getName());
+        if(presentProduct.isPresent()){
+            throw new InvalidInputException("Product name already exists");
+        }
+
         Product product = productMapper.toProductEntity(productDto);
 
         productRepository.save(product);
@@ -60,10 +72,10 @@ public class ProductManagementService {
             Product newProduct = productMapper.toProductEntity(productDto);
             newProduct.setProductId(productId);
             productRepository.save(newProduct);
+            String message = "product did not exist. New product created.";
 
-            return productMapper.toProductDto(newProduct);
+            return productMapper.toProductDto(newProduct,message);
         }
-
 
     }
 

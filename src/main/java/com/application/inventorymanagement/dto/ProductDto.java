@@ -14,5 +14,6 @@ public class ProductDto {
     private Double price;
     private String category;
     private String supplier;
+    private String message = "";
 
 }
